@@ -55,6 +55,19 @@ function dateIsValid(field) {
         message: `${field} must be a valid date.`
       });
     }
+    if (date.getDay() === 2){
+      return next ({
+        status: 400,
+        message: `Restaurant is closed.`,
+      });
+    }
+
+    if (date.getTime() < new Date().getTime()) {
+      return next ({
+        status: 400,
+        message: `${field} must be in the future.`
+      });
+    }
     next();
   };
 }
