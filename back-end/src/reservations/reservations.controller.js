@@ -5,6 +5,7 @@ const service = require("./reservations.service")
  * List handler for reservation resources
  */
 
+//checks if body data has specific keys 
 function bodyDataHas(propertyName) {
   return function (req, res, next) {
     const { data = {} } = req.body;
@@ -15,6 +16,8 @@ function bodyDataHas(propertyName) {
   };
 }
 
+//removes special characters from phone numbers and checks if the length is equal to 10, 
+//which would be the length of a valid phone number
 function phoneNumberIsValid(field) {
   return function (req, _res, next) {
     const { data: { [field]: value } = {} } = req.body;
@@ -28,6 +31,7 @@ function phoneNumberIsValid(field) {
   };
 }
 
+//checks if the time is valid in a way that can be read by all browsers
 function timeIsValid(field) {
   return function (req, res, next) {
     const { data: {[field]: value} = {} } =req.body;
@@ -39,6 +43,7 @@ function timeIsValid(field) {
         message: `${field} must be a valid time.`
       })
     }
+    //checks if the time is in the range that will be accepted by the restaurant
     if (value < "10:30" || value > "21:30") {
       return next ({
         status: 400,
@@ -49,18 +54,23 @@ function timeIsValid(field) {
   }
 }
 
+
 function dateIsValid(field) {
   return function (req, res, next) {
     const { data: { [field]: value } = {} } = req.body;
     const { reservation_time } = req.body.data;
+    //converts reservation time to a format that is reservation date and reservation time
     let date = new Date(value + " " + reservation_time);
 
+    //checks if date is valid
     if(isNaN(date)) {
       return next({
         status: 400,
         message: `${field} must be a valid date.`
       });
     }
+
+    //checks if reservation time is on a Tuesday, which is invalid because of operating days
     if (date.getDay() === 2){
       return next ({
         status: 400,
@@ -68,6 +78,7 @@ function dateIsValid(field) {
       });
     }
 
+    //checks if requested reservation date and time is in the past
     if (date.getTime() < new Date().getTime()) {
       return next ({
         status: 400,
@@ -82,6 +93,7 @@ function peopleIsValid(field) {
   return function (req, res, next) {
   const { data: { [field]:value } = {} } = req.body;
 
+  //checks if requested people value is a number
   if(typeof value !== "number") {
     return next({
       status: 400,
@@ -89,6 +101,7 @@ function peopleIsValid(field) {
     });
   }
 
+  //checks if requested people value is at least 1
   if (value < 1) {
     return next ({
       status: 400,
@@ -99,6 +112,7 @@ function peopleIsValid(field) {
   };
 }
 
+//lists all reservations on a particular date
 async function list(req, res) {
   const { date } = req.query;
 
@@ -109,6 +123,7 @@ async function list(req, res) {
   res.json({ data });
 }
 
+//creates reservation
 async function create(req, res) {
   const response = await service.create(req.body.data);
   res.status(201).json({
