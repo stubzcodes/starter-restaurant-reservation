@@ -1,4 +1,4 @@
-const reservationsData = require("./02-reservations.json");
+const reservationsData = require("./01-reservations.json");
 
 exports.seed = function (knex) {
   // Deletes ALL existing entries

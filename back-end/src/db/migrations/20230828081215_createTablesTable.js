@@ -3,6 +3,12 @@ exports.up = function(knex) {
   return knex.schema.createTable("tables", (table) => {
     table.string("table_name").notNull();
     table.integer("capacity").notNull().unsigned();
+    table.integer("reservation_id").defaultTo(null);
+    table.boolean("occupied").defaultTo(false);
+    table
+      .foreign("reservation_id")
+      .references("reservation_id")
+      .inTable("reservations");
     table.timestamps(true, true);
   });
 };
