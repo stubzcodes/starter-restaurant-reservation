@@ -5,6 +5,21 @@ const service = require("./reservations.service")
  * List handler for reservation resources
  */
 
+//checks if "reservation_id" matches existing reservation
+async function reservationExists(req, res, next) {
+  const { reservation_id} = req.params;
+  const reservation = await service.read(reservation_id);
+
+  if(reservation) {
+    res.locals.reservation = reservation;
+    return next();
+  }
+  next({
+    status:400,
+    message: `Reservation ${reservation_id} cannot be found.`
+  });
+}
+
 //checks if body data has specific keys 
 function bodyDataHas(propertyName) {
   return function (req, res, next) {
@@ -53,7 +68,6 @@ function timeIsValid(field) {
     next()
   }
 }
-
 
 function dateIsValid(field) {
   return function (req, res, next) {
@@ -131,6 +145,13 @@ async function create(req, res) {
   });
 }
 
+//GETs reservation by reservation id
+async function read(req, res) {
+  const { reservation_id } = req.params;
+  const data = await service.read(reservation_id);
+  res.json({ data });
+}
+
 
 
 module.exports = {
@@ -147,5 +168,8 @@ module.exports = {
     dateIsValid("reservation_date"),
     peopleIsValid("people"),
     asyncErrorBoundary(create),
+  ],
+  read: [asyncErrorBoundary(reservationExists), 
+    asyncErrorBoundary(read)
   ],
 };

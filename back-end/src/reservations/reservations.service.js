@@ -16,7 +16,16 @@ async function create(reservation) {
     return createdReservations[0];    
 }
 
+//gets specific reservation, shows first match (should only be 1 match anyway)
+function read(reservation_id) {
+    return knex("reservations")
+        .select("*")
+        .where({ "reservation_id": reservation_id })
+        .first();
+}
+
 module.exports = {
     list,
     create,
+    read,
 };
