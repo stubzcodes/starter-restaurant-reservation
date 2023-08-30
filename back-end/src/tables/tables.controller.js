@@ -49,6 +49,12 @@ function bodyDataHas(propertyName) {
     };
   }
 
+//lists all tables by table name (ordered in service function)
+async function list(req, res) {
+    const data = await service.list();
+    res.status(200).json({ data })
+}
+
 //creates a new table  
 async function create(req, res) {
     const response = await service.create(req.body.data);
@@ -56,6 +62,7 @@ async function create(req, res) {
 }
 
 module.exports = {
+    list: [asyncErrorBoundary(list)],
     create: [
         bodyDataHas("table_name"),
         bodyDataHas("capacity"),
