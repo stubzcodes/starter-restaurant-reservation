@@ -86,6 +86,24 @@ function bodyDataHas(propertyName) {
     };
   }
 
+  //checks if table_id exists using service read function
+  async function tableExists(req, res, next) {
+    const { table_id } = req.params;
+    const table = await service.read(table_id);
+    //if table doesn't exist, send error
+    if(!table) {
+        return next({
+            status: 404,
+            message: `Table ${table_id} cannot be found.`
+        });
+    }
+    //if table exists, saves table in locals
+    res.locals.table = table
+
+    next();
+  }
+
+  //checks if specific table is occupied
   async function isOccupied(req, res, next) {
     const { table_id } = req.params;
     const table = await service.read(table_id);
@@ -99,6 +117,21 @@ function bodyDataHas(propertyName) {
     next();
   }
 
+  //checks if table is not occupied
+  async function isNotOccupied(req, res, next) {
+    const { table_id } = req.params;
+    const table = await service.read(table_id);
+
+    if (!table.reservation_id) {
+        return next({
+            status: 400,
+            message: "Table is not occupied.",
+        });
+    }
+    next();
+  }
+
+  //checks if reservation has already been seated
   async function reservationNotSat(req, res, next) {
     const { reservation_id } =req.body.data;
     const reservation = await reservationsService.read(reservation_id);
@@ -133,6 +166,17 @@ async function update(req, res) {
     res.status(200).json({ data: response });
 }
 
+//deletes seated table to finish reservation
+async function destroy(req, res) {
+    const { table_id } = res.locals.table;
+    const { reservation_id } = res.locals.table;
+
+    const response = await service.destroy(table_id, reservation_id);
+    res.status(200).json({ data: response });
+}   
+
+
+
 module.exports = {
     list: [asyncErrorBoundary(list)],
     create: [
@@ -147,5 +191,10 @@ module.exports = {
         asyncErrorBoundary(isOccupied),
         asyncErrorBoundary(reservationNotSat),
         asyncErrorBoundary(update),
+    ],
+    delete: [
+        asyncErrorBoundary(tableExists),
+        asyncErrorBoundary(isNotOccupied),
+        asyncErrorBoundary(destroy),
     ],
 };

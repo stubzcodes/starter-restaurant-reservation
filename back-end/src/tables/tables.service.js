@@ -2,10 +2,7 @@ const knex = require("../db/connection");
 
 //service function for getting specifinc table
 function read(table_id) {
-    return knex("tables")
-        .select("*")
-        .where({ "table_id": table_id })
-        .first();
+  return knex("tables").select("*").where({ table_id: table_id }).first();
 }
 
 //service function for listing all tables by table name
@@ -34,7 +31,27 @@ async function update(table_id, reservation_id) {
         .update({ status: "seated " });
 
       return updatedTable;
+    } catch (error) {
+      throw error;
+    }
+  });
+}
 
+async function destroy(table_id, reservation_id) {
+  return knex.transaction(async (unseat) => {
+    try {
+      //update tables
+      const updatedTable = await unseat("tables")
+        .where({ table_id })
+        .update({ reservation_id: null, occupied: false })
+        .returning("*");
+
+      //update reservations
+      await unseat("reservations")
+        .where({ reservation_id })
+        .update({ status: "finished" });
+
+      return updatedTable;
     } catch (error) {
       throw error;
     }
@@ -46,4 +63,5 @@ module.exports = {
   read,
   create,
   update,
+  destroy,
 };
