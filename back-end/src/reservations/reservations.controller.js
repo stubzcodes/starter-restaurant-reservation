@@ -1,5 +1,5 @@
-const asyncErrorBoundary = require("../errors/asyncErrorBoundary")
-const service = require("./reservations.service")
+const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
+const service = require("./reservations.service");
 
 /**
  * List handler for reservation resources
@@ -7,20 +7,20 @@ const service = require("./reservations.service")
 
 //checks if "reservation_id" matches existing reservation
 async function reservationExists(req, res, next) {
-  const { reservation_id} = req.params;
+  const { reservation_id } = req.params;
   const reservation = await service.read(reservation_id);
 
-  if(reservation) {
+  if (reservation) {
     res.locals.reservation = reservation;
     return next();
   }
   next({
-    status:400,
-    message: `Reservation ${reservation_id} cannot be found.`
+    status: 400,
+    message: `Reservation ${reservation_id} cannot be found.`,
   });
 }
 
-//checks if body data has specific keys 
+//checks if body data has specific keys
 function bodyDataHas(propertyName) {
   return function (req, res, next) {
     const { data = {} } = req.body;
@@ -31,7 +31,7 @@ function bodyDataHas(propertyName) {
   };
 }
 
-//removes special characters from phone numbers and checks if the length is equal to 10, 
+//removes special characters from phone numbers and checks if the length is equal to 10,
 //which would be the length of a valid phone number
 function phoneNumberIsValid(field) {
   return function (req, _res, next) {
@@ -49,24 +49,24 @@ function phoneNumberIsValid(field) {
 //checks if the time is valid in a way that can be read by all browsers
 function timeIsValid(field) {
   return function (req, res, next) {
-    const { data: {[field]: value} = {} } =req.body;
+    const { data: { [field]: value } = {} } = req.body;
     const timeCheck = /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
 
-    if(!value.match(timeCheck)) {
+    if (!value.match(timeCheck)) {
       return next({
         status: 400,
-        message: `${field} must be a valid time.`
-      })
+        message: `${field} must be a valid time.`,
+      });
     }
     //checks if the time is in the range that will be accepted by the restaurant
     if (value < "10:30" || value > "21:30") {
-      return next ({
+      return next({
         status: 400,
-        message: `${field} must be between 10:30am and 9:30pm.`
+        message: `${field} must be between 10:30am and 9:30pm.`,
       });
     }
-    next()
-  }
+    next();
+  };
 }
 
 function dateIsValid(field) {
@@ -77,16 +77,16 @@ function dateIsValid(field) {
     let date = new Date(value + " " + reservation_time);
 
     //checks if date is valid
-    if(isNaN(date)) {
+    if (isNaN(date)) {
       return next({
         status: 400,
-        message: `${field} must be a valid date.`
+        message: `${field} must be a valid date.`,
       });
     }
 
     //checks if reservation time is on a Tuesday, which is invalid because of operating days
-    if (date.getDay() === 2){
-      return next ({
+    if (date.getDay() === 2) {
+      return next({
         status: 400,
         message: `Restaurant is closed.`,
       });
@@ -94,9 +94,9 @@ function dateIsValid(field) {
 
     //checks if requested reservation date and time is in the past
     if (date.getTime() < new Date().getTime()) {
-      return next ({
+      return next({
         status: 400,
-        message: `${field} must be in the future.`
+        message: `${field} must be in the future.`,
       });
     }
     next();
@@ -105,24 +105,39 @@ function dateIsValid(field) {
 
 function peopleIsValid(field) {
   return function (req, res, next) {
-  const { data: { [field]:value } = {} } = req.body;
+    const { data: { [field]: value } = {} } = req.body;
 
-  //checks if requested people value is a number
-  if(typeof value !== "number") {
-    return next({
-      status: 400,
-      message: `${field} must be a number.`,
-    });
-  }
+    //checks if requested people value is a number
+    if (typeof value !== "number") {
+      return next({
+        status: 400,
+        message: `${field} must be a number.`,
+      });
+    }
 
-  //checks if requested people value is at least 1
-  if (value < 1) {
-    return next ({
-      status: 400,
-      message: `${field} must be at least 1.`,
-    });
-  }
-  next();
+    //checks if requested people value is at least 1
+    if (value < 1) {
+      return next({
+        status: 400,
+        message: `${field} must be at least 1.`,
+      });
+    }
+    next();
+  };
+}
+
+//checks if reservation you are attempting to create is already seated or finished
+function createStatusValidator(field) {
+  return function (req, res, next) {
+    const { data: { [field]: value } = {} } = req.body;
+
+    if (value === "seated" || value === "finished") {
+      return next({
+        status: 400,
+        message: `${field} cannot be seated or finished.`,
+      });
+    }
+    next();
   };
 }
 
@@ -152,8 +167,6 @@ async function read(req, res) {
   res.json({ data });
 }
 
-
-
 module.exports = {
   list: [asyncErrorBoundary(list)],
   create: [
@@ -167,9 +180,8 @@ module.exports = {
     timeIsValid("reservation_time"),
     dateIsValid("reservation_date"),
     peopleIsValid("people"),
+    createStatusValidator("status"),
     asyncErrorBoundary(create),
   ],
-  read: [asyncErrorBoundary(reservationExists), 
-    asyncErrorBoundary(read)
-  ],
+  read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
 };
