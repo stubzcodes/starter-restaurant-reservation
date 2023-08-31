@@ -69,14 +69,13 @@ function timeIsValid(field) {
   };
 }
 
-
 function dateIsValid(field) {
   return function (req, res, next) {
     const { data: { [field]: value } = {} } = req.body;
     const { reservation_time } = req.body.data;
     //converts reservation time to a format that is reservation date and reservation time
     let date = new Date(value + " " + reservation_time);
-    console.log("My Code", typeof date)
+    console.log("My Code", typeof date);
     //checks if date is valid
     if (isNaN(date)) {
       return next({
@@ -154,7 +153,7 @@ function updateStatusValidator(req, res, next) {
   next();
 }
 
-async function updateUnknownStatusValidator (req, res, next) {
+async function updateUnknownStatusValidator(req, res, next) {
   const { reservation_id } = res.locals.reservation;
   const { status } = req.body.data;
 
@@ -169,18 +168,23 @@ async function updateUnknownStatusValidator (req, res, next) {
   res.status(200).json({ data: response[0] });
 }
 
-//lists all reservations on a particular date
+//lists reservations
 async function list(req, res) {
   const { date } = req.query;
+  const { mobile_number } = req.query;
 
   let data;
+  //if there is a date in the query, will list reservations on that date
   if (date) {
-    return res.json({ data: await service.listOnDate(date) } )
+    return res.json({ data: await service.listOnDate(date) });
   }
-  //search by mobile number goes here
-
+  //if there is a mobile number in the query, will list reservations that match
+  if (mobile_number) {
+    return res.json({ data: await service.search(mobile_number)})
+  }
+  //if there is no query, will list all reservations
   data = await service.list();
- return res.json({ data });
+  return res.json({ data });
 }
 
 //creates reservation
@@ -200,11 +204,11 @@ async function read(req, res) {
 
 //updates reservation status
 async function updateStatus(req, res) {
-  const { reservation_id} = res.locals.reservation;
+  const { reservation_id } = res.locals.reservation;
   const { status } = req.body.data;
 
   const response = await service.updateStatus(reservation_id, status);
-  res.status(200).json({ data: response[0]})
+  res.status(200).json({ data: response[0] });
 }
 
 //updates specific reservation
@@ -250,7 +254,7 @@ module.exports = {
     asyncErrorBoundary(create),
   ],
   read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
-  updateStatus:[
+  updateStatus: [
     asyncErrorBoundary(reservationExists),
     updateStatusValidator,
     updateUnknownStatusValidator,
