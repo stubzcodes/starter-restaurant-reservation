@@ -1,11 +1,25 @@
 const knex = require("../db/connection")
 
 //service function for listing all reservations on a particular date
-function list(date) {
+// function list(date) {
+//     return knex("reservations")
+//       .select("*")
+//       .where({ reservation_date: date })
+//       .orderBy("reservation_time");
+//   }
+
+function list() {
+    return knex("reservations")
+        .select("*")
+        .orderBy("reservation_time", "asc")
+}
+
+  function listOnDate(date) {
     return knex("reservations")
       .select("*")
-      .where({ reservation_date: date })
-      .orderBy("reservation_time");
+      .where({ date })
+      .whereNotIn("status", ["finished", "canceled"])
+      .orderBy("reservation_time", "asc");
   }
 
 //service function for creating a reservation 
@@ -42,6 +56,7 @@ function updateReservation(reservation_id, reservation) {
 
 module.exports = {
     list,
+    listOnDate,
     create,
     read,
     updateStatus,

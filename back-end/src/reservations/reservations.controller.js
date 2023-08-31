@@ -69,13 +69,14 @@ function timeIsValid(field) {
   };
 }
 
+
 function dateIsValid(field) {
   return function (req, res, next) {
     const { data: { [field]: value } = {} } = req.body;
     const { reservation_time } = req.body.data;
     //converts reservation time to a format that is reservation date and reservation time
     let date = new Date(value + " " + reservation_time);
-
+    console.log("mycode", date)
     //checks if date is valid
     if (isNaN(date)) {
       return next({
@@ -174,9 +175,12 @@ async function list(req, res) {
 
   let data;
   if (date) {
-    data = await service.list(date);
+    return res.json({ data: await service.listOnDate(date) } )
   }
-  res.json({ data });
+  //search by mobile number goes here
+  console.log("data", data)
+  data = await service.list();
+ return res.json({ data });
 }
 
 //creates reservation
@@ -230,7 +234,7 @@ async function updateReservation(req, res) {
 }
 
 module.exports = {
-  list: [asyncErrorBoundary(list)],
+  list: asyncErrorBoundary(list),
   create: [
     bodyDataHas("first_name"),
     bodyDataHas("last_name"),

@@ -1,6 +1,6 @@
 const knex = require("../db/connection");
 
-//service function for getting specifinc table
+//service function for getting specific table
 function read(table_id) {
   return knex("tables").select("*").where({ table_id: table_id }).first();
 }
@@ -28,7 +28,7 @@ async function update(table_id, reservation_id) {
       //update reservations
       await seat("reservations")
         .where({ reservation_id })
-        .update({ status: "seated " });
+        .update({ status: "seated" });
 
       return updatedTable;
     } catch (error) {
