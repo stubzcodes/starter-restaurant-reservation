@@ -15,7 +15,7 @@ async function reservationExists(req, res, next) {
     return next();
   }
   next({
-    status: 400,
+    status: 404,
     message: `Reservation ${reservation_id} cannot be found.`,
   });
 }
@@ -141,6 +141,33 @@ function createStatusValidator(field) {
   };
 }
 
+//validates status for update
+function updateStatusValidator(req, res, next) {
+  const { reservation: { status } = {} } = res.locals;
+  if (status === "finished") {
+    return next({
+      status: 400,
+      message: "A finished reservation cannot be updated.",
+    });
+  }
+  next();
+}
+
+async function updateUnknownStatusValidator (req, res, next) {
+  const { reservation_id } = res.locals.reservation;
+  const { status } = req.body.data;
+
+  if (status === "unknown") {
+    return next({
+      status: 400,
+      message: "Status cannot be unknown.",
+    });
+  }
+
+  const response = await service.updateStatus(reservation_id, status);
+  res.status(200).json({ data: response[0] });
+}
+
 //lists all reservations on a particular date
 async function list(req, res) {
   const { date } = req.query;
@@ -167,6 +194,41 @@ async function read(req, res) {
   res.json({ data });
 }
 
+//updates reservation status
+async function updateStatus(req, res) {
+  const { reservation_id} = res.locals.reservation;
+  const { status } = req.body.data;
+
+  const response = await service.updateStatus(reservation_id, status);
+  res.status(200).json({ data: response[0]})
+}
+
+//updates specific reservation
+async function updateReservation(req, res) {
+  const {
+    first_name,
+    last_name,
+    mobile_number,
+    reservation_date,
+    reservation_time,
+    people,
+  } = req.body.data;
+  const { reservation_id } = res.locals.reservation;
+  const updatedReservation = {
+    first_name,
+    last_name,
+    mobile_number,
+    reservation_date,
+    reservation_time,
+    people,
+  };
+  const response = await service.updateReservation(
+    reservation_id,
+    updatedReservation
+  );
+  res.status(200).json({ data: response[0] });
+}
+
 module.exports = {
   list: [asyncErrorBoundary(list)],
   create: [
@@ -184,4 +246,24 @@ module.exports = {
     asyncErrorBoundary(create),
   ],
   read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
+  updateStatus:[
+    asyncErrorBoundary(reservationExists),
+    updateStatusValidator,
+    updateUnknownStatusValidator,
+    asyncErrorBoundary(updateStatus),
+  ],
+  updateReservation: [
+    asyncErrorBoundary(reservationExists),
+    bodyDataHas("first_name"),
+    bodyDataHas("last_name"),
+    bodyDataHas("mobile_number"),
+    bodyDataHas("reservation_date"),
+    bodyDataHas("reservation_time"),
+    bodyDataHas("people"),
+    phoneNumberIsValid("mobile_number"),
+    dateIsValid("reservation_date"),
+    timeIsValid("reservation_time"),
+    peopleIsValid("people"),
+    asyncErrorBoundary(updateReservation),
+  ],
 };
