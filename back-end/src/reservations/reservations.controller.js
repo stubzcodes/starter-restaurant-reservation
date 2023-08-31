@@ -76,7 +76,7 @@ function dateIsValid(field) {
     const { reservation_time } = req.body.data;
     //converts reservation time to a format that is reservation date and reservation time
     let date = new Date(value + " " + reservation_time);
-    console.log("mycode", date)
+    console.log("My Code", typeof date)
     //checks if date is valid
     if (isNaN(date)) {
       return next({
@@ -178,7 +178,7 @@ async function list(req, res) {
     return res.json({ data: await service.listOnDate(date) } )
   }
   //search by mobile number goes here
-  console.log("data", data)
+
   data = await service.list();
  return res.json({ data });
 }
