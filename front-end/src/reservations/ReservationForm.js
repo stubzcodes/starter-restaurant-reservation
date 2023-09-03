@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
 
 function ReservationForm({
   //props passed from edit and new reservation
@@ -20,7 +19,7 @@ function ReservationForm({
 
   function handleSubmit(event) {
     //standard default handling
-    event.prevenDefault();
+    event.preventDefault();
 
     //submitHandler function passed as prop, form data passed in as parameter
     submitHandler(formData);
@@ -28,7 +27,7 @@ function ReservationForm({
 
   function handleCancel(event) {
     //standard default handling from click
-    event.prevenDefault();
+    event.preventDefault();
     //cancel handling function which was passed in as prop
     cancelHandler();
   }
