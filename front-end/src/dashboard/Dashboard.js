@@ -4,7 +4,10 @@ import ErrorAlert from "../layout/ErrorAlert";
 import ReadReservation from "../reservations/ReadReservation";
 import { today, previous, next } from "../utils/date-time";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import ReadTables from "../tables/ReadTables";
 require("dotenv").config();
+require("dotenv").config();
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 /**
  * Defines the dashboard page.
@@ -17,6 +20,8 @@ function Dashboard({ date }) {
 
   const [reservations, setReservations] = useState([]);
   const [reservationsError, setReservationsError] = useState(null);
+  const [tables, setTables] = useState([])
+  const [error, setError] = useState(null);
 
   useEffect(loadDashboard, [date]);
 
@@ -28,6 +33,24 @@ function Dashboard({ date }) {
       .catch(setReservationsError);
     return () => abortController.abort();
   }
+
+  useEffect(()=>{
+    const abortController = new AbortController();
+    try {
+      async function getTables(){
+        const response = await fetch(`${BASE_URL}/tables`, abortController.signal)
+        const data = await response.json()
+        setTables(data.data)
+      }
+      getTables()
+      
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        setError(error);
+      }
+    }
+    return () => abortController.abort();
+  },[])
 
   if (reservations.length !== 0) {
     return (
@@ -66,6 +89,12 @@ function Dashboard({ date }) {
             />
           ))}
         </div>
+        <div>
+          <h4>Tables</h4>
+        </div>
+        <div>
+          {tables.map((table) => <ReadTables key={table.table_id} table={table} />)}
+        </div>
       </main>
     );
   } else {
@@ -97,6 +126,12 @@ function Dashboard({ date }) {
           >Next Day</button>
         </div>
         <ErrorAlert error={reservationsError} />
+        <div>
+          <h4>Tables</h4>
+        </div>
+        <div>
+          {tables.map((table) => <ReadTables key={table.table_id} table={table} />)}
+        </div>
       </main>
     );
   }
