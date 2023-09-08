@@ -1,5 +1,5 @@
-import React from "react";
-import ErrorAlert from "../layout/ErrorAlert";
+import React, { useState } from "react";
+// import ErrorAlert from "../layout/ErrorAlert";
 
 function ReservationForm({
   error,
@@ -9,10 +9,38 @@ function ReservationForm({
   formData,
   setFormData,
 }) {
+  const [isTuesday, setIsTuesday] = useState(false);
+  const [isPastDate, setIsPastDate] = useState(false);
+
+  function isDateTuesday(date) {
+    const selectedDate = new Date(`${date}T00:00:00`);
+    const dayOfWeek = selectedDate.getUTCDay();
+
+    return dayOfWeek === 2;
+  }
+
+  function isDateInPast(date) {
+    const selectedDate = new Date(`${date}T00:00:00`);
+    const currentDate = new Date();
+
+    selectedDate.setHours(0, 0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
+    return selectedDate < currentDate;
+  }
+
   function handleChange(event) {
     let newFormData = { ...formData };
     newFormData[event.target.name] = event.target.value;
     setFormData(newFormData);
+
+    if (event.target.name === "reservation_date") {
+      setIsTuesday(isDateTuesday(event.target.value));
+      if (isDateInPast(event.target.value)) {
+        setIsPastDate(true);
+      } else {
+        setIsPastDate(false);
+      }
+    }
   }
 
   return (
@@ -95,7 +123,39 @@ function ReservationForm({
           <button className="btn btn-secondary" onClick={handleCancel}>
             Cancel
           </button>
-          {error ? <ErrorAlert error={error} /> : null}
+          {isTuesday && !isPastDate ? (
+            <div className="alert alert-danger">
+              <p>
+                The restaurant is closed on Tuesdays. Please choose another day.
+              </p>
+            </div>
+          ) : (
+            ""
+          )}
+          {isPastDate && !isTuesday ? (
+            <div className="alert alert-danger">
+              <p>
+                Your requested date that is in the past. Please choose a different
+                date.
+              </p>
+            </div>
+          ) : (
+            ""
+          )}
+          {isTuesday && isPastDate ? (
+            <div className="alert alert-danger">
+              <p>
+                The restaurant is closed on Tuesdays. Please choose another day.
+              </p>{" "}
+              <p>
+                Additionally, your requested date is in the past. Please choose a
+                different date.
+              </p>
+            </div>
+          ) : (
+            ""
+          )}
+          {/* {error ? <ErrorAlert error={error} /> : null} */}
         </div>
       </form>
     </div>
