@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
 import ReservationForm from "./ReservationForm";
-// import ErrorAlert from "../layout/ErrorAlert";
+import ErrorAlert from "../layout/ErrorAlert";
 require("dotenv").config();
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -59,7 +59,7 @@ function NewReservation() {
         setFormData={setFormData}
         error={error}
       />
-      {/* <ErrorAlert error={error} /> */}
+      <ErrorAlert error={error} />
     </>
   );
 }
