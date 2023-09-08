@@ -1,98 +1,67 @@
-import axios from "axios";
 import React, { useState } from "react";
+import axios from "axios";
 import { useHistory } from "react-router-dom";
-import ErrorAlert from "../layout/ErrorAlert"
 import ReservationForm from "./ReservationForm";
+import ErrorAlert from "../layout/ErrorAlert";
 require("dotenv").config();
-
-//API URL configuration that has been set in configuration file
-const API_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5001"
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function NewReservation() {
-    const history = useHistory();
-    //sets default value of form data to empty strings
-    const [formData, setFormData] = useState({
-        first_name: "",
-        last_name: "",
-        mobile_number: "",
-        reservation_date: "",
-        reservation_time: "",
-        people: "",
-    });
+  const history = useHistory();
+  const initialFormData = {
+    first_name: "",
+    last_name: "",
+    mobile_number: "",
+    reservation_date: "",
+    reservation_time: "",
+    people: 1,
+    status: "booked",
+  };
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState(initialFormData);
 
-    //errors are null by default
-    const [error, setError] = useState(null);
-
-    function handleChange(target) {
-        const updatedFormData = {
-            ...formData,
-            [target.name]: target.value,
-        };
-
-        //sets form data if no errors occur
-        setFormData(updatedFormData);
-    }
-
-    async function handleSubmit(event) {
-        //sets variable for errors as empty array
-        const newErrors = [];
-
-        //if attempting to make res for less than 1 person, pushes error message
-        if(formData.people < 1) {
-            newErrors.push("Please enter a number of people.")
-        }
-        //if there are any errors, sets error state message to newErrors array
-        if(formData.people < 1) {
-            setError({ message: newErrors})
-
-            return;
-        } else {
-            //creates abort controller to prevent crashes
-            const abortController = new AbortController();
-            const signal = abortController.signal;
-            //ensures people type is a number
-            formData.people = Number(formData.people);
-
-            try{
-                //attempts port request to API
-                await axios.post(
-                    `${API_BASE_URL}/reservations`,
-                    {
-                        data: formData,
-                    },
-                    //signal abort controller if cancellation is necessary
-                    { signal }
-                );
-                //if post request is successful, redirects to dashboard, which lists all res for "reservation_date"
-                history.push(`dashboard?date=${formData.reservation_date}`);
-              //if error is not intentional cancellation, error message is obtained from response  
-            } catch (error) {
-                if (error.name !== "AbortError") {
-                    setError({ message: error.response.data.error });
-                }
-            }
-            //cleanup function
-            return () => abortController.abort();
-        }
-    }
-
-    //when cancel button is clicked, browser redirected to previous page
-    const handleCancel = () => {
-        history.goBack();
+  function handleCancel() {
+    history.goBack();
+  }
+  
+  async function handleSubmit(event) {
+    event.preventDefault();
+    const abortController = new AbortController();
+    const formDataCorrectTypes = {
+      ...formData,
+      people: Number(formData.people),
     };
 
-    return (
-        <div>
-            <h1>New Reservation</h1>
-            <ReservationForm
-                initialFormData={formData}
-                submitHandler={handleSubmit}
-                cancelHandler={handleCancel}
-                changeHandler={handleChange}
-            />
-            <ErrorAlert error={error} />
-        </div>
-    );
+    try {
+      await axios.post(
+        `${BASE_URL}/reservations`,
+        { data: formDataCorrectTypes },
+        abortController.signal
+      );
+      history.push(`/dashboard?date=${formData.reservation_date}`);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        const message = error.response.data.error
+        setError({message});
+      }
+    }
+    return () => abortController.abort();
+  }
+
+  return (
+    <>
+      <h1>Create a Reservation</h1>
+      <ReservationForm
+        handleSubmit={handleSubmit}
+        handleCancel={handleCancel}
+        reservation={formData}
+        formData={formData}
+        setFormData={setFormData}
+        error={error}
+      />
+      <ErrorAlert error={error} />
+    </>
+  );
 }
 
 export default NewReservation;

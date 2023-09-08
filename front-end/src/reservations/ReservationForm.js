@@ -1,113 +1,102 @@
-import React, { useState } from "react";
+import React from "react";
+import ErrorAlert from "../layout/ErrorAlert";
 
 function ReservationForm({
-  //props passed from edit and new reservation
-  initialFormData,
-  submitHandler,
-  cancelHandler,
+  error,
+  handleSubmit,
+  handleCancel,
+  reservation,
+  formData,
+  setFormData,
 }) {
-  //sets state for data from form
-  const [formData, setFormData] = useState({ ...initialFormData });
-  
-  //handles change to data
-  function handleChange({ target }) {
-    setFormData({
-      ...formData,
-      [target.name]: target.value,
-    });
+  function handleChange(event) {
+    let newFormData = { ...formData };
+    newFormData[event.target.name] = event.target.value;
+    setFormData(newFormData);
   }
 
-  function handleSubmit(event) {
-    //standard default handling
-    event.preventDefault();
-
-    //submitHandler function passed as prop, form data passed in as parameter
-    submitHandler(formData);
-  }
-
-  function handleCancel(event) {
-    //standard default handling from click
-    event.preventDefault();
-    //cancel handling function which was passed in as prop
-    cancelHandler();
-  }
-
-  //form that can be used for both new reservations and editing an existing reservation
   return (
     <div>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="first_name">First Name</label>
+          <label htmlFor="first_name">First Name:</label>
           <input
             className="form-control"
             id="first_name"
             name="first_name"
             type="text"
-            onChange={handleChange}
-            value={formData.first_name}
             required
+            value={reservation.first_name}
+            onChange={handleChange}
           />
-          <label htmlForm="last_name">Last Name</label>
+
+          <label htmlFor="last_name">Last Name:</label>
           <input
             className="form-control"
             id="last_name"
             name="last_name"
             type="text"
-            onChange={handleChange}
-            value={formData.last_name}
             required
+            value={reservation.last_name}
+            onChange={handleChange}
           />
-          <label htmlFor="mobile_number">Mobile Number</label>
+
+          <label htmlFor="mobile_number">Mobile Number:</label>
           <input
             className="form-control"
             id="mobile_number"
             name="mobile_number"
             type="text"
-            onChange={handleChange}
-            value={formData.mobile_number}
+            title="Please enter a valid 10 digit phone number."
+            placeholder="123-456-7890"
+            pattern="[0-9\-]*"
             required
+            value={reservation.mobile_number}
+            onChange={handleChange}
           />
-          <label htmlFor="reservation_date">Reservation Date</label>
+
+          <label htmlFor="reservation_date">Reservation Date:</label>
           <input
             className="form-control"
             id="reservation_date"
             name="reservation_date"
-            type="text"
-            onChange={handleChange}
-            value={formData.reservation_date}
+            type="date"
             required
+            value={reservation.reservation_date}
+            onChange={handleChange}
           />
-          <label htmlFor="reservation_time">Reservation Time</label>
+
+          <label htmlFor="reservation_time">Reservation Time:</label>
           <input
             className="form-control"
             id="reservation_time"
             name="reservation_time"
-            type="text"
-            onChange={handleChange}
-            value={formData.reservationTime}
+            type="time"
             required
+            value={reservation.reservation_time}
+            onChange={handleChange}
           />
-          <label htmlFor="people">Number of People</label>
+
+          <label htmlFor="people">Number of People:</label>
           <input
             className="form-control"
             id="people"
             name="people"
             type="number"
-            onChange={handleChange}
-            value={formData.people}
+            min={1}
             required
+            value={reservation.people}
+            onChange={handleChange}
           />
+
+          <button className="btn btn-primary mr-2" type="submit">
+            Submit
+          </button>
+          <button className="btn btn-secondary" onClick={handleCancel}>
+            Cancel
+          </button>
+          {error ? <ErrorAlert error={error} /> : null}
         </div>
-        <button type="submit" className="btn btn-primary mr-2">
-          Submit
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={handleCancel}
-        >
-          Cancel
-        </button>
       </form>
     </div>
   );
