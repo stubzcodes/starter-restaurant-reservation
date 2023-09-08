@@ -1,16 +1,13 @@
-import React, { useState } from "react";
-import ErrorAlert from "../layout/ErrorAlert";
+import React from "react";
 require("dotenv").config();
 
 function ReadTables({ table }) {
-  const [error, setError] = useState(null);
 
   if (!table) {
     return <p>Loading...</p>;
   } else {
     return (
       <>
-        <ErrorAlert error={error} />
         <div className="card mb-3">
           <div className="card-body">
             <h5 className="card-title">Table: {table.table_name}</h5>

@@ -80,6 +80,7 @@ function Dashboard({ date }) {
             }}
           >Next Day</button>
         </div>
+        <ErrorAlert error={error} />
         <ErrorAlert error={reservationsError} />
         <div>
           {reservations.map((reservation) => (
