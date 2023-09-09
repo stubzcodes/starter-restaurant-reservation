@@ -52,7 +52,7 @@ function Dashboard({ date }) {
     return () => abortController.abort();
   },[])
 
-  if (reservations.length !== 0) {
+  if (reservations.length !== 0 && tables) {
     return (
       <main>
         <h1>Dashboard</h1>

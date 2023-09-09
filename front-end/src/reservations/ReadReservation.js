@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 require("dotenv").config();
 
 function ReadReservation({ reservation }) {
-
   return (
     <>
       <div className="card mb-3">
@@ -21,7 +20,23 @@ function ReadReservation({ reservation }) {
             Reservation Time: {reservation.reservation_time}
           </p>
           <p className="card-text">Number of People: {reservation.people}</p>
-          {reservation.status !== "booked" ? "" : <Link to={`/reservations/${reservation.reservation_id}/seat`} className="btn btn-primary" href={`/reservations/${reservation.reservation_id}/seat`}>Seat</Link>}
+          <p
+            className="card-text"
+            data-reservation-id-status={reservation.reservation_id}
+          >
+            Status: {reservation.status}
+          </p>
+          {reservation.status !== "booked" ? (
+            ""
+          ) : (
+            <Link
+              to={`/reservations/${reservation.reservation_id}/seat`}
+              className="btn btn-primary"
+              href={`/reservations/${reservation.reservation_id}/seat`}
+            >
+              Seat
+            </Link>
+          )}
         </div>
       </div>
     </>
