@@ -9,10 +9,11 @@ require("dotenv").config();
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function SeatReservation() {
+  // Gets the reservation ID from URL params
   const { reservation_id } = useParams();
   const initialData = {
     table_id: "",
-    reservation_id: reservation_id,
+    reservation_id: reservation_id, // Sets initial data with the reservation ID
   };
   const history = useHistory();
   const [error, setError] = useState(null);
@@ -23,25 +24,28 @@ function SeatReservation() {
     const abortController = new AbortController();
     try {
       async function getTables() {
+        // Fetches available tables from the API
         const response = await fetch(
           `${BASE_URL}/tables`,
           abortController.signal
         );
         const data = await response.json();
-        setTables(data.data);
+        setTables(data.data); // Stores fetched table data in state
       }
       getTables();
     } catch (error) {
       if (error.name !== "AbortError") {
-        setError(error);
+        setError(error); // Handles and stores any errors that occur during fetching
       }
     }
+    // Cleanup function to abort any ongoing fetch requests
     return () => abortController.abort();
   }, []);
 
   function handleChange(event) {
     let newFormData = { ...formData };
     newFormData[event.target.name] = event.target.value;
+    // Updates the form data state based on user input
     setFormData(newFormData);
   }
 
@@ -49,26 +53,30 @@ function SeatReservation() {
     history.goBack();
   }
 
+  // Function to handle form submission
   async function handleSubmit(event) {
     event.preventDefault();
     const abortController = new AbortController();
     const formattedData = {
+      // Converts table_id and reservation_id to numbers
       table_id: Number(formData.table_id),
       reservation_id: Number(formData.reservation_id),
     };
 
     try {
+      // Sends a PUT request to seat the reservation at the selected table
       await axios.put(
         `${BASE_URL}/tables/${formattedData.table_id}/seat/`,
         { data: formattedData },
         abortController.signal
       );
-      history.push("/dashboard");
+      history.push("/dashboard"); // Redirects to the dashboard after seating
     } catch (error) {
       if (error.name !== "AbortError") {
         setError(error);
       }
     }
+    // Cleanup function to abort the request if necessary
     return () => abortController.abort();
   }
 
@@ -77,7 +85,10 @@ function SeatReservation() {
       <>
         <div className="card mt-3 pl-3 mb-3">
           <div>
-            <h4 className="mt-2 mb-3"> Seat Reservation Number {reservation_id} </h4>
+            <h4 className="mt-2 mb-3">
+              {" "}
+              Seat Reservation Number {reservation_id}{" "}
+            </h4>
           </div>
           <div>
             <form onSubmit={handleSubmit}>
@@ -121,7 +132,7 @@ function SeatReservation() {
       </>
     );
   } else {
-    return <p>Loading...</p>;
+    return <p>Loading...</p>; // Displays loading message until tables are fetched
   }
 }
 

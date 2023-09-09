@@ -75,7 +75,7 @@ function dateIsValid(field) {
     const { reservation_time } = req.body.data;
     //converts reservation time to a format that is reservation date and reservation time
     let date = new Date(value + " " + reservation_time);
-    console.log("My Code", typeof date);
+  
     //checks if date is valid
     if (isNaN(date)) {
       return next({

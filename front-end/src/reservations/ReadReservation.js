@@ -2,38 +2,46 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useHistory } from "react-router-dom/cjs/react-router-dom";
 require("dotenv").config();
+
+// Retrieves the base URL from environment variables
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function ReadReservation({ reservation }) {
-
   const history = useHistory();
+  // State to handle errors
   const [error, setError] = useState(null);
-  
+
+  // Function to handle reservation cancellation
   async function handleCancel(event) {
     event.preventDefault();
+    // Creates an AbortController instance to allow cancellation of the API request
     const abortController = new AbortController();
 
+    // Asks for confirmation before canceling the reservation
     if (
       window.confirm(
         "Do you want to cancel this reservation? This cannot be undone."
       )
     ) {
       try {
+        // Makes a PUT request to update the reservation status to "cancelled"
         await axios.put(
           `${BASE_URL}/reservations/${reservation.reservation_id}/status`,
-          {data: { status: "cancelled" } }, abortController.signal
+          { data: { status: "cancelled" } },
+          abortController.signal
         );
+        // Redirects to the home page after successful cancellation
         history.push("/");
       } catch (error) {
         if (error.name !== "AbortError") {
           setError(error);
         }
       }
+      // Cleanup function to abort the API request if needed
       return () => abortController.abort();
     }
   }
-  
-  
+
   return (
     <>
       <div className="card mb-3">

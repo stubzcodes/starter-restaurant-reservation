@@ -12,39 +12,48 @@ function NewTable() {
     capacity: "",
   };
 
+  // State for form data and error handling
   const [formData, setFormData] = useState(initialFormData);
   const [error, setError] = useState(null);
 
+  // Function to handle the cancellation and navigate back
   function handleCancel() {
     history.goBack();
   }
 
+  // Function to handle changes in form inputs
   function handleChange(event) {
     let newFormData = { ...formData };
     newFormData[event.target.name] = event.target.value;
+    // Updates the form data state based on user input
     setFormData(newFormData);
   }
 
+  // Function to handle form submission
   async function handleSubmit(event) {
     event.preventDefault();
     const abortController = new AbortController();
     const formDataCorrectTypes = {
       ...formData,
-      capacity: Number(formData.capacity),
+      capacity: Number(formData.capacity), // Converts capacity to a number
     };
 
     try {
+      // Sends a POST request to create a new table
       await axios.post(
         `${BASE_URL}/tables`,
         { data: formDataCorrectTypes },
         abortController.signal
       );
+      // Redirects to the dashboard after creating the table
       history.push("/dashboard");
     } catch (error) {
       if (error.name !== "AbortError") {
+        // Handles and stores any errors that occur during the table creation
         setError(error);
       }
     }
+    // Cleanup function to abort the request if necessary
     return () => abortController.abort();
   }
 
